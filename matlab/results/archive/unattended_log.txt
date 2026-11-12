@@ -1,0 +1,54 @@
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 22.03 C, ambient 21.24 C
+cooling: chamber 21.97 C, ambient 21.21 C
+cooling: chamber 21.98 C, ambient 21.21 C
+Cooldown done after 181 s (chamber - ambient = 0.85 C)
+
+===== 12-Nov-2026 02:45:33  starting run: CTRL=1 SCENARIO=track =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario track, controller ON-OFF. Just watch.
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.20 C   chamber now: 22.06 C
+Heater OFF.
+Saved results\hw_onoff_track_20261112_0305.(mat|csv|png)
+Energy 1760 J, effort 2598 V*s, duty 43.3 %
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 24.09 C, ambient 21.42 C
+cooling: chamber 22.44 C, ambient 21.31 C
+cooling: chamber 22.29 C, ambient 21.28 C
+cooling: chamber 22.17 C, ambient 21.26 C
+cooling: chamber 22.13 C, ambient 21.26 C
+Cooldown done after 256 s (chamber - ambient = 0.87 C)
+
+===== 12-Nov-2026 03:09:59  starting run: CTRL=2 SCENARIO=track =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario track, controller PI. Just watch.
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.26 C   chamber now: 22.14 C
+Heater OFF.
+Saved results\hw_pi_track_20261112_0330.(mat|csv|png)
+Energy 861 J, effort 2571 V*s, duty 42.8 %
+
+===== 12-Nov-2026 03:30:04  all unattended runs finished =====

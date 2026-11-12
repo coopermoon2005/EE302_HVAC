@@ -1,0 +1,58 @@
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 22.57 C, ambient 21.27 C
+cooling: chamber 22.17 C, ambient 21.21 C
+cooling: chamber 22.08 C, ambient 21.18 C
+cooling: chamber 22.06 C, ambient 21.17 C
+Cooldown done after 188 s (chamber - ambient = 0.92 C)
+
+===== 11-Nov-2026 23:25:35  starting run: CTRL=2 SCENARIO=normal =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario normal, controller PI. Do nothing (baseline for fault comparison).
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.18 C   chamber now: 22.10 C
+Heater OFF.
+Saved results\hw_pi_normal_20261111_2345.(mat|csv|png)
+Energy 1059 J, effort 2979 V*s, duty 49.6 %
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 25.27 C, ambient 21.56 C
+cooling: chamber 22.70 C, ambient 21.37 C
+cooling: chamber 22.18 C, ambient 21.30 C
+cooling: chamber 22.05 C, ambient 21.27 C
+cooling: chamber 22.00 C, ambient 21.27 C
+Cooldown done after 283 s (chamber - ambient = 0.71 C)
+
+===== 11-Nov-2026 23:50:29  starting run: CTRL=2 SCENARIO=bias =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario bias, controller PI. Sensor bias switches on by itself at AUTO_BIAS_T (or press b).
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.28 C   chamber now: 21.99 C
+ 400.0 s  sensor bias 1
+ 421.5 s  DETECTOR: SENSOR BIAS / SENSOR FAULT
+ 490.0 s  DETECTOR: LOW AIRFLOW (fan failure / restriction)
+Heater OFF.
+Saved results\hw_pi_bias_20261112_0010.(mat|csv|png)
+Energy 492 J, effort 1954 V*s, duty 32.6 %
+
+===== 12-Nov-2026 00:10:34  all unattended runs finished =====

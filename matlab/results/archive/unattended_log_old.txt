@@ -1,0 +1,51 @@
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 22.34 C, ambient 21.14 C
+cooling: chamber 22.37 C, ambient 21.14 C
+cooling: chamber 22.46 C, ambient 21.12 C
+cooling: chamber 22.24 C, ambient 21.12 C
+cooling: chamber 22.15 C, ambient 21.10 C
+Cooldown done after 250 s (chamber - ambient = 1.00 C)
+
+===== 11-Nov-2026 22:55:24  starting run: CTRL=2 SCENARIO=normal =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario normal, controller PI. Do nothing (baseline for fault comparison).
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.10 C   chamber now: 22.09 C
+ 122.0 s  DETECTOR: LOW AIRFLOW (fan failure / restriction)
+Heater OFF.
+Saved results\hw_pi_normal_20261111_2315.(mat|csv|png)
+Energy 931 J, effort 2771 V*s, duty 46.2 %
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+cooling: chamber 25.16 C, ambient 21.47 C
+cooling: chamber 22.77 C, ambient 21.29 C
+cooling: chamber 22.42 C, ambient 21.25 C
+Cooldown done after 162 s (chamber - ambient = 1.00 C)
+
+===== 11-Nov-2026 23:18:18  starting run: CTRL=2 SCENARIO=bias =====
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+Scenario bias, controller PI. Sensor bias switches on by itself at AUTO_BIAS_T (or press b).
+    DeviceID        Model     
+    ________    ______________
+
+     "Dev1"     "NI ELVIS II+"
+
+Using device Dev1
+Ambient latched: 21.24 C   chamber now: 22.21 C
+ 121.0 s  DETECTOR: LOW AIRFLOW (fan failure / restriction)

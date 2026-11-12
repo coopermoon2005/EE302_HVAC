@@ -1,0 +1,65 @@
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+done: onoff_track
+done: pi_track
+done: onoff_dist
+done: pi_dist
+done: pi_normal
+done: pi_restrict
+done: pi_fanfail
+done: pi_bias
+          run            step_degC       rise_s    settle_s    overshoot_pct     ess_degC      ripple_degC    effort_Vs    duty_pct
+    _______________    ______________    ______    ________    _____________    ___________    ___________    _________    ________
+
+    {'onoff_track'}    {'+0.0->+4.0'}       13      362.5         11.365           0.039263          0.97        3625       60.392 
+    {'onoff_track'}    {'+4.0->+6.0'}       16        393         16.322            0.17122        1.0115        3625       60.392 
+    {'onoff_track'}    {'+6.0->+3.0'}     10.5       12.5          14.96          -0.023412       0.93375        3625       60.392 
+    {'pi_track'   }    {'+0.0->+4.0'}     40.5       34.5              0         0.00012798    0.00026324      3651.1       60.826 
+    {'pi_track'   }    {'+4.0->+6.0'}     42.5       16.5              0         6.8615e-05    0.00014113      3651.1       60.826 
+    {'pi_track'   }    {'+6.0->+3.0'}     36.5       20.5              0        -0.00013587    0.00026544      3651.1       60.826 
+
+          run          t_detect_s    delay_s                       label                       mean_abs_err_degC    effort_Vs    duty_pct
+    _______________    __________    _______    ___________________________________________    _________________    _________    ________
+
+    {'pi_normal'  }        NaN         NaN      {'none'                                   }       1.3065e-06           4193       69.855 
+    {'pi_restrict'}      439.5        39.5      {'LOW AIRFLOW (fan failure / restriction)'}         0.011227         2384.2       39.719 
+    {'pi_fanfail' }        435          35      {'LOW AIRFLOW (fan failure / restriction)'}         0.013025         1869.7       31.149 
+    {'pi_bias'    }        434          34      {'SENSOR BIAS / SENSOR FAULT'             }        0.0065202         3046.8       50.758 
+
+hvac_params: using identified model K=1.410 degC/V, tau=19.6 s, L=0.2 s
+          run          source          step         rise_s    settle_s    overshoot_pct     ess_degC      ripple_degC
+    _______________    _______    ______________    ______    ________    _____________    ___________    ___________
+
+    {'onoff_track'}    {'hw' }    {'+0.0->+4.0'}        8        7.5         12.196         -0.0045006       0.79508 
+    {'onoff_track'}    {'sim'}    {'+0.0->+4.0'}       13      362.5         11.365           0.039263          0.97 
+    {'onoff_track'}    {'hw' }    {'+4.0->+6.0'}        9        7.5         22.456         -0.0016503       0.82215 
+    {'onoff_track'}    {'sim'}    {'+4.0->+6.0'}       16        393         16.322            0.17122        1.0115 
+    {'onoff_track'}    {'hw' }    {'+6.0->+3.0'}       18        207         11.745          0.0074086       0.78478 
+    {'onoff_track'}    {'sim'}    {'+6.0->+3.0'}     10.5       12.5          14.96          -0.023412       0.93375 
+    {'pi_track'   }    {'hw' }    {'+0.0->+4.0'}       24       22.5         3.2944         -0.0017945       0.21907 
+    {'pi_track'   }    {'sim'}    {'+0.0->+4.0'}     40.5       34.5              0         0.00012798    0.00026324 
+    {'pi_track'   }    {'hw' }    {'+4.0->+6.0'}       27       13.5         7.6818          0.0081996       0.22551 
+    {'pi_track'   }    {'sim'}    {'+4.0->+6.0'}     42.5       16.5              0         6.8615e-05    0.00014113 
+    {'pi_track'   }    {'hw' }    {'+6.0->+3.0'}     36.5         29         5.7009             0.0027       0.27448 
+    {'pi_track'   }    {'sim'}    {'+6.0->+3.0'}     36.5       20.5              0        -0.00013587    0.00026544 
+
+onoff_dist: peak deviation 0.50 C at +10 s, recovered (|e|<0.5) after 10 s
+pi_dist: peak deviation 0.32 C at +17 s, recovered (|e|<0.5) after NaN s
+          run          t_fault_s    t_detect_s    delay_s                       label                       mean_abs_err_C    mean_u_V    duty_pct    mean_power_W    energy_J
+    _______________    _________    __________    _______    ___________________________________________    ______________    ________    ________    ____________    ________
+
+    {'onoff_dist' }      404.5        436.5          32      {'LOW AIRFLOW (fan failure / restriction)'}        0.16605        1.7292      34.584         1.1702       1569.9 
+    {'onoff_track'}        NaN          NaN         NaN      {'none'                                   }        0.19877        2.2252      44.504         1.4953       1760.4 
+    {'pi_bias'    }        400        421.5        21.5      {'SENSOR BIAS / SENSOR FAULT'             }       0.033805        1.1934      23.868        0.13033       492.24 
+    {'pi_dist'    }      406.5        436.5          30      {'LOW AIRFLOW (fan failure / restriction)'}       0.056045        1.8024      36.049        0.45292       686.35 
+    {'pi_fanfail' }      422.5          461        38.5      {'LOW AIRFLOW (fan failure / restriction)'}       0.067763       0.66601       13.32       0.029643       397.59 
+    {'pi_normal'  }        NaN          NaN         NaN      {'none'                                   }       0.040284        2.5325      50.651         0.8916       1059.3 
+    {'pi_restrict'}      416.5        448.5          32      {'LOW AIRFLOW (fan failure / restriction)'}       0.035249        1.2815      25.631         0.1555       472.84 
+    {'pi_track'   }        NaN          NaN         NaN      {'none'                                   }       0.091638        2.2483      44.965        0.79727       860.58 
+
+pi_fanfail: estimated airflow factor a = 0.18  (put in hvac_params.m)
+pi_restrict: estimated airflow factor a = 0.36  (put in hvac_params.m)
+Figures + CSV tables written to results/.
+{Error using print (line 14)
+Cannot save file '../docs/figures/simulink_raw.pdf' because the parent directory does not exist
+} 
+ERROR: MATLAB error Exit Status: 0x00000001
