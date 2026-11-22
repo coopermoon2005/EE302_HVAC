@@ -1,0 +1,526 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist{itemsep=2pt,topsep=3pt}
+\definecolor{accent}{HTML}{1F4E9C}
+\titleformat{\section}{\Large\bfseries\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{accent}}{\thesubsection}{0.5em}{}
+\pagestyle{fancy}\fancyhf{}
+\lhead{\small\color{gray}EE302 HVAC: mathematical modelling and calculations}
+\rhead{\small\color{gray}\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newtcolorbox{result}{enhanced,breakable,colback=accent!5,colframe=accent,boxrule=0.6pt,arc=2pt,left=6pt,right=6pt}
+\newtcolorbox{note}{enhanced,breakable,colback=orange!6,colframe=orange!70!black,boxrule=0.5pt,arc=2pt,left=6pt,right=6pt}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries\color{accent} Mathematical Modelling and Performance Calculations}\\[6pt]
+{\large Smart HVAC Temperature Control and Fault Detection}\\[3pt]
+{\small EE302 Control Systems Laboratory \textbullet\ Group 2 \textbullet\ Problem Statement 4 \textbullet\ IIT Mandi}
+\end{center}
+
+\tableofcontents
+\vspace{4mm}
+
+% =====================================================================
+\section{Notation and data}
+
+\begin{center}
+\begin{tabular}{@{}llp{0.5\textwidth}@{}}
+\toprule
+Symbol & Unit & Meaning\\
+\midrule
+$T$, $T_a$ & \si{\celsius} & chamber and ambient temperature\\
+$y = T - T_a$ & \si{\celsius} & rise above ambient (deviation variable)\\
+$u$ & V & heater command, $0 \le u \le U_{max} = 5$ V\\
+$K$ & \si{\celsius\per\volt} & steady-state gain\\
+$\tau$ & s & time constant\\
+$L$ & s & dead time\\
+$a(t)$ & -- & airflow factor: 1 normal, $<1$ restricted\\
+$r$, $e = r - T_m$ & \si{\celsius} & setpoint and control error\\
+$T_s$ & s & sampling period, 0.5 s\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Model & $K$ [\si{\celsius\per\volt}] & $\tau$ [s] & $L$ [s]\\
+\midrule
+Step-test fit (used to tune the PI) & 1.709 & 33.73 & 0.5\\
+Closed-loop refit (used by the detector and Simulink) & 1.41 & 19.6 & 0.2\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Derivation of the thermal model}
+
+\subsection{Energy balance}
+Treat the air in the chamber as one lumped body with heat capacity $C$ [\si{J\per\celsius}].
+The lamp delivers power $P_{in}$; the airflow carries heat away at a rate proportional to the
+temperature difference to ambient, with conductance $h$ [\si{W\per\celsius}]:
+\[
+C\,\frac{dT}{dt} = P_{in}(t) - h\,a(t)\,(T - T_a).
+\]
+Near the operating point the lamp power is taken as proportional to the command delayed by $L$
+(lamp warm-up and transport through the duct), $P_{in} = k_p\,u(t-L)$. Dividing by $h$:
+\[
+\boxed{\;\tau\,\frac{dT}{dt} = K\,u(t-L) - a(t)\,(T - T_a)\;}
+\qquad\text{with}\qquad
+\tau = \frac{C}{h},\qquad K = \frac{k_p}{h}.
+\]
+\textbf{Meaning:} the left side is how fast the stored heat changes; $K u$ is heat in from the lamp;
+$a(T-T_a)$ is heat carried away by the airflow.
+
+\subsection{Deviation form and steady state}
+With $y = T - T_a$ (constant $T_a$):
+\[
+\tau\,\dot y = K\,u(t-L) - a\,y.
+\]
+In steady state $\dot y = 0$:
+\[
+\boxed{\;y_{ss} = \frac{K\,u}{a}\;}
+\qquad\Rightarrow\qquad
+u_{ss} = \frac{a\,y_{ss}}{K}.
+\]
+\textbf{Maximum reachable rise} ($a=1$, $u = 5$ V): step-test model $1.709\times5 = \SI{8.54}{\celsius}$;
+refit model $1.41\times5 = \SI{7.05}{\celsius}$. Hence setpoints are kept at $\le \SI{+6}{\celsius}$.
+
+\subsection{Transfer function}
+Laplace transform with zero initial conditions:
+\[
+\tau s\,Y(s) = K e^{-Ls}U(s) - a\,Y(s)
+\quad\Rightarrow\quad
+\boxed{\;G(s) = \frac{Y(s)}{U(s)} = \frac{K\,e^{-Ls}}{\tau s + a} = \frac{(K/a)\,e^{-Ls}}{(\tau/a)\,s + 1}\;}
+\]
+Normal airflow ($a=1$): $G(s) = \dfrac{K e^{-Ls}}{\tau s + 1}$, a first-order-plus-dead-time (FOPDT) plant.
+
+\textbf{Effect of restricted airflow:} both the gain and the time constant are divided by $a$.
+With the refit model:
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Airflow & $a$ & gain $K/a$ [\si{\celsius\per\volt}] & time constant $\tau/a$ [s]\\
+\midrule
+Normal & 1 & 1.41 & 19.6\\
+50\,\% plate & 0.36 & 3.92 & 54.4\\
+Closed plate & 0.18 & 7.83 & 108.9\\
+\bottomrule
+\end{tabular}
+\end{center}
+A blocked fan makes the chamber both much more sensitive and much slower.
+
+% =====================================================================
+\section{Open-loop step response}
+
+\subsection{Analytical solution}
+For a step $u(t) = u_0$ applied at $t=0$, $a=1$, $y(0)=0$:
+\[
+\boxed{\;y(t) = \begin{cases} 0, & t < L\\[2pt] K u_0\left(1 - e^{-(t-L)/\tau}\right), & t \ge L\end{cases}\;}
+\]
+Time to reach a fraction $p$ of the final value:
+\[
+y(t_p) = p\,K u_0 \;\Rightarrow\; 1 - e^{-(t_p - L)/\tau} = p \;\Rightarrow\;
+\boxed{\;t_p = L - \tau\ln(1-p)\;}
+\]
+
+\subsection{Formulas}
+\begin{align*}
+t_{63\%} &= L - \tau\ln(0.37) = L + \tau \quad\text{(definition of the time constant)}\\
+t_r\,(10\text{--}90\,\%) &= t_{0.9} - t_{0.1} = \tau\left[\ln(0.9) - \ln(0.1)\right] = \tau\ln 9 = 2.197\,\tau\\
+t_s\,(5\,\%) &= L - \tau\ln(0.05) = L + \tau\ln 20 \approx L + 3\tau\\
+t_s\,(2\,\%) &= L - \tau\ln(0.02) = L + \tau\ln 50 \approx L + 4\tau\\
+M_p &= 0 \quad\text{(first order: no overshoot)}
+\end{align*}
+
+\subsection{Numbers (3 V step)}
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Quantity & Step-test model & Refit model\\
+\midrule
+Final rise $K u_0$ & $1.709\times3 = \SI{5.13}{\celsius}$ & $1.41\times3 = \SI{4.23}{\celsius}$\\
+$t_{63}$ $= L + \tau$ & $0.5 + 33.73 = \SI{34.2}{s}$ & $0.2 + 19.6 = \SI{19.8}{s}$\\
+Rise time $2.197\,\tau$ & $2.197\times33.73 = \SI{74.1}{s}$ & $2.197\times19.6 = \SI{43.1}{s}$\\
+Settling 5\,\% $L + \tau\ln20$ & $0.5 + 33.73\times2.996 = \SI{101.5}{s}$ & \SI{58.9}{s}\\
+Settling 2\,\% $L + \tau\ln50$ & $0.5 + 33.73\times3.912 = \SI{132.4}{s}$ & \SI{76.9}{s}\\
+\bottomrule
+\end{tabular}
+\end{center}
+The 300 s heating phase of the step test is about $9\tau$, so the chamber fully reaches steady state.
+
+% =====================================================================
+\section{System identification}
+
+\subsection{Discrete model (Euler, $T_s = 0.5$ s)}
+Replace $\dot y \approx (y_{k+1} - y_k)/T_s$:
+\[
+\boxed{\;\hat y_{k+1} = \hat y_k + \frac{T_s}{\tau}\left(K\,u_{k-d} - \hat y_k\right),\qquad d = \operatorname{round}(L/T_s)\;}
+\]
+Each step closes a fraction $T_s/\tau$ of the gap between the current value and the value the
+heater is pulling toward. For the step-test model $T_s/\tau = 0.5/33.73 = 0.0148$ (1.5\,\% per step).
+
+\subsection{Output-error fit}
+Using the measured input $u_k$, simulate $\hat y_k(K,\tau,L)$ and minimise
+\[
+J(K,\tau,L) = \sum_{k}\left(y_k - \hat y_k\right)^2
+\]
+with the Nelder--Mead simplex (\texttt{fminsearch}). Goodness of fit:
+\[
+\text{fit} = 100\left(1 - \frac{\lVert y - \hat y\rVert}{\lVert y - \bar y\rVert}\right) = 89\,\%.
+\]
+Result: $K = \SI{1.709}{\celsius\per\volt}$, $\tau = \SI{33.73}{s}$, $L \approx \SI{0.5}{s}$.
+
+\subsection{Why the closed-loop refit differs}
+The lamp's electrical power is $P = V^2/R$, which is not linear in $u$. A straight-line gain fitted
+at a constant 3 V does not describe the varying command in closed loop. Refitting $K$ and $\tau$ on
+the closed-loop tracking runs gave $K = 1.41$, $\tau = 19.6$ s, $L \approx 0.2$ s.
+
+% =====================================================================
+\section{Controllers}
+
+\subsection{ON-OFF with hysteresis}
+\[
+u_k = \begin{cases} U_{on} = 5\text{ V}, & e_k > +H/2\\ 0, & e_k < -H/2\\ u_{k-1}, & \text{otherwise}\end{cases}
+\qquad H = \SI{0.6}{\celsius}.
+\]
+
+\subsection{PI controller}
+Continuous form and transfer function:
+\[
+u(t) = K_p e(t) + K_i\!\int_0^t e\,dt,\qquad
+C(s) = K_p\left(1 + \frac{1}{T_i s}\right) = \frac{K_p(T_i s + 1)}{T_i s},\qquad K_i = \frac{K_p}{T_i}.
+\]
+Discrete implementation with saturation and clamping anti-windup:
+\begin{align*}
+v_k &= K_p e_k + I_k, \qquad u_k = \min\bigl(\max(v_k, 0),\, 5\bigr)\\
+I_{k+1} &= \begin{cases} I_k, & (v_k > 5 \text{ and } e_k > 0) \text{ or } (v_k < 0 \text{ and } e_k < 0)\\ I_k + K_i T_s e_k, & \text{otherwise}\end{cases}
+\end{align*}
+
+% =====================================================================
+\section{PI tuning by SIMC}
+
+\subsection{Derivation (direct synthesis)}
+Ask for a closed loop that is first order with time constant $\tau_c$ plus the unavoidable delay:
+\[
+\frac{Y}{R}\bigg|_{desired} = \frac{e^{-Ls}}{\tau_c s + 1}.
+\]
+Direct synthesis gives $C = \dfrac{1}{G}\,\dfrac{(Y/R)}{1 - (Y/R)}$. Using $e^{-Ls} \approx 1 - Ls$ in the
+denominator:
+\[
+C(s) = \frac{\tau s + 1}{K e^{-Ls}}\cdot\frac{e^{-Ls}}{\tau_c s + 1 - e^{-Ls}}
+\approx \frac{\tau s + 1}{K(\tau_c + L)\,s}
+= \frac{\tau}{K(\tau_c+L)}\left(1 + \frac{1}{\tau s}\right).
+\]
+Comparing with $C(s) = K_p(1 + 1/(T_i s))$:
+\[
+\boxed{\;K_p = \frac{\tau}{K(\tau_c + L)},\qquad T_i = \min\bigl(\tau,\;4(\tau_c + L)\bigr)\;}
+\]
+(The $\min$ is Skogestad's correction for slow plants, to remove load disturbances faster.)
+
+\subsection{Calculation (step-test model)}
+\begin{align*}
+\tau_c &= \max(\tau/4,\; 2L) = \max(33.73/4,\; 1.0) = \SI{8.43}{s}\\
+\tau_c + L &= 8.43 + 0.5 = \SI{8.93}{s}\\
+K_p &= \frac{33.73}{1.709\times 8.93} = \frac{33.73}{15.26} = \boxed{2.21\ \si{\volt\per\celsius}}\\
+T_i &= \min(33.73,\; 4\times8.93 = 35.73) = \boxed{\SI{33.73}{s}}\\
+K_i &= \frac{K_p}{T_i} = \frac{2.21}{33.73} = \boxed{0.0655\ \si{\volt\per(\celsius\,s)}}
+\end{align*}
+Meaning: an error of \SI{1}{\celsius} gives 2.21 V immediately, and the integral adds
+0.0655 V for every \si{\celsius\,s} of accumulated error.
+
+\subsection{Loop transfer function and stability margins}
+With $T_i = \tau$ the controller zero cancels the plant pole:
+\[
+L_{loop}(s) = C(s)G(s) = \frac{K_p(\tau s+1)}{\tau s}\cdot\frac{K e^{-Ls}}{\tau s + 1}
+= \frac{K_p K}{\tau}\cdot\frac{e^{-Ls}}{s} = \frac{e^{-Ls}}{(\tau_c + L)\,s}.
+\]
+\begin{itemize}
+\item \textbf{Gain crossover:} $|L_{loop}(j\omega_c)| = 1 \Rightarrow \omega_c = \dfrac{1}{\tau_c + L} = \dfrac{1}{8.93} = \SI{0.112}{rad\per s}$.
+\item \textbf{Phase margin:} $\angle L_{loop} = -90^\circ - \omega L\cdot\frac{180^\circ}{\pi}$, so
+$PM = 90^\circ - 0.112\times0.5\times57.3^\circ = \boxed{86.8^\circ}$.
+\item \textbf{Gain margin:} phase $= -180^\circ$ when $\omega_{180} L = \pi/2 \Rightarrow \omega_{180} = \pi/(2\times0.5) = \SI{3.14}{rad\per s}$;
+$|L_{loop}(j\omega_{180})| = 1/(8.93\times3.14) = 0.0356$, so $GM = \boxed{28\ (\approx 29\text{ dB})}$.
+\end{itemize}
+The design is very robust: the plant gain could be about 28 times larger before instability.
+
+% =====================================================================
+\section{Closed-loop calculations for the PI}
+All for the first tracking step, 0 $\to$ \SI{+4}{\celsius}, settling band $\pm\SI{0.5}{\celsius}$ (12.5\,\% of the step).
+
+\subsection{Case 1: design target (nominal model, no saturation)}
+\[
+y(t) = 4\left(1 - e^{-(t-L)/\tau_c}\right),\quad t \ge L
+\]
+\begin{align*}
+t_r &= \tau_c \ln 9 = 8.43\times2.197 = \boxed{\SI{18.5}{s}}\\
+t_s(\pm0.5) &: 4e^{-(t-L)/\tau_c} = 0.5 \Rightarrow t_s = L + \tau_c\ln 8 = 0.5 + 8.43\times2.079 = \boxed{\SI{18.0}{s}}\\
+t_s(2\,\%) &= L + \tau_c\ln 50 = 0.5 + 8.43\times3.912 = \SI{33.5}{s}\\
+M_p &= 0
+\end{align*}
+
+\subsection{Steady-state error (final value theorem)}
+For a step $R(s) = r_0/s$:
+\[
+E(s) = \frac{R(s)}{1 + C(s)G(s)},\qquad
+e_{ss} = \lim_{s\to0} s\,E(s) = \lim_{s\to0}\frac{r_0}{1 + \dfrac{K_p(T_i s+1)}{T_i s}\cdot\dfrac{K e^{-Ls}}{\tau s+1}} = \frac{r_0}{1 + \infty} = \boxed{0}.
+\]
+The integrator makes the loop gain infinite at $s = 0$, whatever the exact value of $K$.
+This is why the PI works even though the real $K$ differs from the design value.
+
+\subsection{Case 2: real plant (refit) with the step-test gains, linear}
+Neglecting the small delay, $G = \dfrac{1.41}{19.6 s + 1}$ and $C = \dfrac{2.21(33.73 s + 1)}{33.73 s}$:
+\[
+\frac{Y}{R} = \frac{K_pK(T_i s + 1)}{T_i\tau s^2 + T_i(1 + K_pK)s + K_pK}.
+\]
+\begin{align*}
+K_p K &= 2.21\times1.41 = 3.116\\
+T_i\tau &= 33.73\times19.6 = 661.0\\
+T_i(1 + K_pK) &= 33.73\times4.116 = 138.8
+\end{align*}
+\[
+\text{Characteristic equation: } 661.0\,s^2 + 138.8\,s + 3.116 = 0
+\]
+\[
+s_{1,2} = \frac{-138.8 \pm\sqrt{138.8^2 - 4(661.0)(3.116)}}{2(661.0)}
+= \frac{-138.8 \pm \sqrt{19\,266 - 8\,239}}{1322} = \frac{-138.8 \pm 105.0}{1322}
+\]
+\[
+\boxed{s_1 = -0.0256,\quad s_2 = -0.1844}\qquad(\text{time constants } 39.1\text{ s and } 5.4\text{ s})
+\]
+\[
+\omega_n = \sqrt{3.116/661.0} = \SI{0.0687}{rad\per s},\qquad
+\zeta = \frac{138.8}{2\sqrt{661.0\times3.116}} = 1.53 > 1
+\]
+so the closed loop is \textbf{overdamped, with no overshoot}.
+The closed-loop zero at $-1/T_i = -0.0297$ almost cancels the slow pole at $-0.0256$, so the slow
+mode has only a small amplitude. Simulated response (numerical): $t_r \approx \SI{18}{s}$,
+$t_s \approx \SI{16}{s}$, $M_p = 0$.
+
+\subsection{Case 3: with heater saturation (0--5 V)}
+At the moment of the step, $u = K_p e = 2.21\times4 = \SI{8.84}{V} > \SI{5}{V}$, so the heater saturates and
+the chamber can only heat at the maximum rate. During saturation:
+\[
+\dot y = \frac{K\cdot5 - y}{\tau} \quad\Rightarrow\quad \dot y(0) = \frac{1.41\times5}{19.6} = \SI{0.36}{\celsius\per s}.
+\]
+Numerical simulation with saturation, clamping anti-windup, delay and a 1 s sensor lag gives
+$t_r \approx \SI{39}{s}$, $t_s \approx \SI{33}{s}$, $M_p = 0$, which matches the Simulink result
+($t_r = 40.5$ s, $t_s = 34.5$ s). \textbf{Saturation, not the gains, sets the simulated rise time.}
+
+\begin{note}
+\textbf{Why the hardware was faster (24 s) than the simulation (40.5 s):} during the rise the heater
+runs near 5 V. Lamp power grows roughly as $V^2$, so at full voltage the real lamp heats more than
+the linear model predicts. The ON-OFF results confirm this: the hardware needed a lower duty cycle
+than the linear model predicts (Section~\ref{sec:onoff}).
+\end{note}
+
+% =====================================================================
+\section{ON-OFF calculations}\label{sec:onoff}
+
+\subsection{Heating and cooling rates}
+Heater on ($u = 5$) and off ($u = 0$), at a rise $y$ above ambient:
+\[
+\dot y_{heat} = \frac{K\cdot5 - y}{\tau},\qquad \dot y_{cool} = -\frac{y}{\tau}.
+\]
+At $y = \SI{4}{\celsius}$ (refit model): $\dot y_{heat} = (7.05 - 4)/19.6 = \SI{0.156}{\celsius\per s}$,
+$\dot y_{cool} = -4/19.6 = \SI{-0.204}{\celsius\per s}$.
+
+\subsection{Duty cycle (energy balance)}
+Averaged over one cycle, heat in equals heat out: $K\,d\,U_{on} = y$, so
+\[
+\boxed{\;d = \frac{y}{K\,U_{on}}\;},\qquad \bar u = d\,U_{on} = \frac{y}{K}.
+\]
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Step level $y$ & $d$ (refit, $K=1.41$) & $d$ (step test, $K=1.709$) & $\bar u$ (refit)\\
+\midrule
+\SI{4}{\celsius} & $4/7.05 = 57\,\%$ & $4/8.54 = 47\,\%$ & 2.84 V\\
+\SI{6}{\celsius} & $6/7.05 = 85\,\%$ & $6/8.54 = 70\,\%$ & 4.26 V\\
+\SI{3}{\celsius} & $3/7.05 = 43\,\%$ & $3/8.54 = 35\,\%$ & 2.13 V\\
+\midrule
+Average over the staircase & 62\,\% & 51\,\% & \\
+\bottomrule
+\end{tabular}
+\end{center}
+Simulation (refit model): 60\,\%, as predicted. Hardware: 44.5\,\%, lower than both linear models,
+so the real lamp is more effective at 5 V than the linear model assumes.
+
+\subsection{Rise time}
+At full power from $y = 0$: $y(t) = K\cdot5\,(1 - e^{-t/\tau})$, so $t = -\tau\ln\left(1 - \dfrac{y}{5K}\right)$.
+For the 0 $\to$ 4 step, the 10\,\% and 90\,\% points are 0.4 and \SI{3.6}{\celsius}:
+\begin{align*}
+t_{10} &= -19.6\ln(1 - 0.4/7.05) = -19.6\ln(0.9433) = \SI{1.1}{s}\\
+t_{90} &= -19.6\ln(1 - 3.6/7.05) = -19.6\ln(0.4894) = \SI{14.0}{s}\\
+t_r &= 14.0 - 1.1 = \boxed{\SI{12.9}{s}}\qquad(\text{Simulink: } 13.0\text{ s; hardware: } 8.0\text{ s})
+\end{align*}
+
+\subsection{Overshoot}
+The heater switches off only when the measured temperature passes $r + H/2$, and keeps heating for
+an effective delay $\theta \approx L + \tau_s = 0.2 + 1.0 = \SI{1.2}{s}$ (dead time plus sensor lag):
+\[
+M_p \approx \frac{H/2 + \dot y_{heat}\,\theta}{\Delta r} = \frac{0.3 + 0.156\times1.2}{4} = \frac{0.49}{4} \approx \boxed{12\,\%}
+\qquad(\text{hardware: } 12.2\,\%).
+\]
+
+\subsection{Limit cycle}
+With an ideal sensor and no delay, the temperature would oscillate exactly between the switching
+points, a peak-to-peak ripple of $H = \SI{0.6}{\celsius}$. The delay adds an overshoot at each end:
+\[
+\text{ripple} \approx H + (\dot y_{heat} + |\dot y_{cool}|)\,\theta' ,
+\]
+where $\theta'$ is the effective delay seen by the measured signal. Numerical simulation gives a
+ripple of \SI{0.77}{\celsius} with a period of about 11.5 s; measured on hardware \SI{0.8}{\celsius}.
+
+% =====================================================================
+\section{Airflow factor and disturbance}
+
+In steady state at setpoint $y$ with airflow $a$: $K\bar u = a\,y$, so
+\[
+\boxed{\;a = \frac{K\,\bar u}{y}\;}
+\]
+At $y = \SI{5}{\celsius}$ with the refit $K = 1.41$:
+\begin{align*}
+a_{50\%} &= \frac{1.41\times1.29}{5} = \boxed{0.36}\\
+a_{closed} &= \frac{1.41\times0.68}{5} = 0.19 \approx \boxed{0.18}
+\end{align*}
+\textbf{Consequence for the controller:} to hold the same temperature, the heater command must drop
+by the factor $a$. Measured in the disturbance run: PI command $2.4 \to \SI{1.3}{V}$ (ratio 0.54).
+
+\begin{note}
+Applying the same formula to the fault-free run ($\bar u = 2.53$ V) gives 0.71 instead of 1, so the
+absolute values carry model error. The ratio to the fault-free run ($1.29/2.53 = 0.51$ and
+$0.68/2.53 = 0.27$) is an alternative estimate. The project uses 0.36 and 0.18 in the simulation.
+\end{note}
+
+% =====================================================================
+\section{Fault-detector calculations}
+
+\subsection{Residual and filter}
+\[
+r_k = T_{m,k} - \hat T_k,\qquad
+r_{f,k+1} = r_{f,k} + \alpha\,(r_k - r_{f,k}),\qquad
+\alpha = 1 - e^{-T_s/T_f} = 1 - e^{-0.5/20} = \boxed{0.0247}.
+\]
+This is the exact discretisation of a first-order low-pass filter $\dfrac{1}{T_f s + 1}$ with $T_f = 20$ s.
+
+\subsection{Steady-state residual for an airflow fault}
+Real chamber: $K\bar u = a\,y$. Nominal model (assumes $a = 1$) with the same $\bar u$: $\hat y = K\bar u = a\,y$. So
+\[
+\boxed{\;r_{ss} = y - \hat y = (1 - a)\,y\;} > 0 \quad\Rightarrow\quad \text{``low airflow''}.
+\]
+Ideal values at $y = 5$: $(1 - 0.36)\times5 = \SI{3.2}{\celsius}$ and $(1 - 0.18)\times5 = \SI{4.1}{\celsius}$.
+Measured filtered residuals: \SI{2.2}{\celsius} and \SI{3.1}{\celsius} (smaller because of model error).
+Note that the controller does \emph{not} remove the residual: it lowers $\bar u$, which lowers $\hat y$.
+
+\subsection{Detection time estimate}
+If the residual steps to $r_{ss}$, the filtered residual is $r_f(t) = r_{ss}(1 - e^{-t/T_f})$.
+It crosses the threshold $R_{th} = 1.3$ at
+\[
+t_{cross} = -T_f\ln\left(1 - \frac{R_{th}}{r_{ss}}\right),\qquad
+\boxed{\;t_{detect} \approx t_{cross} + T_{hold}\;},\quad T_{hold} = 15\text{ s}.
+\]
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Fault & $r_{ss}$ & $t_{cross} + 15$ s & Measured\\
+\midrule
+50\,\% plate & 2.2 & $-20\ln(1 - 1.3/2.2) + 15 = 17.9 + 15 = \SI{32.9}{s}$ & 32.0 s\\
+Closed plate & 3.1 & $-20\ln(1 - 1.3/3.1) + 15 = 10.9 + 15 = \SI{25.9}{s}$ & 27.5 s$^\ast$\\
+Sensor bias & 2.0 & $-20\ln(1 - 1.3/2.0) + 15 = 21.0 + 15 = \SI{36.0}{s}$ & 34.0 s (sim)\\
+\bottomrule
+\multicolumn{4}{@{}l}{\footnotesize $^\ast$from the last plate event; 38.5 s from the first (the plate was logged three times while fitting).}
+\end{tabular}
+\end{center}
+The real airflow residual builds up with the plant dynamics rather than as a step, so these are
+lower bounds; they agree well with the measurements.
+
+\subsection{Sensor-jump threshold}
+The fastest the real chamber can warm is at full power from ambient:
+\[
+\dot y_{max} = \frac{K\cdot5}{\tau} = \frac{1.41\times5}{19.6} = \SI{0.36}{\celsius\per s}
+\;\Rightarrow\; 0.36\times0.5 = \SI{0.18}{\celsius} \text{ per sample}.
+\]
+A jump of more than \SI{1}{\celsius} in one sample (5.5 times the physical maximum) must therefore come
+from the sensor: the +\SI{2}{\celsius} bias is classified as a sensor fault.
+
+% =====================================================================
+\section{Energy comparison}
+Lamp power $P = V^2/R$, so the energy depends on the mean of $V^2$, not the mean of $V$.
+\begin{itemize}
+\item ON-OFF: $V$ is 5 V for a fraction $d$ of the time, so $\overline{V^2} = d\times5^2$. With $d = 0.445$: $\overline{V^2} = 0.445\times25 = 11.1$.
+\item PI: nearly constant $V \approx 2.25$ V, so $\overline{V^2} \approx 2.25^2 = 5.06$.
+\end{itemize}
+\[
+\frac{E_{ON\text{-}OFF}}{E_{PI}} \approx \frac{11.1}{5.06} = \boxed{2.2}
+\qquad(\text{measured: } 1760/861 = 2.04).
+\]
+Both controllers have the same mean command (2.23 V and 2.25 V), yet ON-OFF uses about twice the energy.
+
+% =====================================================================
+\section{Definitions of the performance metrics}
+For a setpoint step from $r_0$ to $r_1$ at time $t_0$ (as computed in \texttt{step\_metrics.m}):
+\begin{align*}
+\text{normalised response: } & \tilde y(t) = \frac{y(t) - r_0}{r_1 - r_0}\\
+\text{rise time: } & t_r = t(\tilde y = 0.9) - t(\tilde y = 0.1)\\
+\text{settling time: } & t_s = \text{last time } |y - r_1| \text{ enters } \le \SI{0.5}{\celsius}\text{ and stays}\\
+\text{overshoot: } & M_p = \frac{\max\,(y - r_1)\,\operatorname{sign}(r_1 - r_0)}{|r_1 - r_0|}\times100\,\%\\
+\text{steady-state error: } & e_{ss} = r_1 - \operatorname{mean}(y) \text{ over the last 20\,\% of the step}\\
+\text{ripple: } & \max y - \min y \text{ over the last 20\,\% of the step}
+\end{align*}
+
+% =====================================================================
+\section{Summary: predicted vs.\ simulated vs.\ measured (0 $\to$ \SI{+4}{\celsius})}
+\begin{center}
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Controller & Quantity & Calculation & Simulink & Hardware\\
+\midrule
+PI & rise time & 18.5 s (design), 39 s (with saturation) & 40.5 s & 24.0 s\\
+   & settling time & 18.0 s (design), 33 s (with saturation) & 34.5 s & 22.5 s\\
+   & overshoot & 0 ($\zeta = 1.53$) & 0 & 3.3\,\%\\
+   & steady-state error & 0 (final value theorem) & 0.00 & 0.00\\
+\midrule
+ON-OFF & rise time & 12.9 s & 13.0 s & 8.0 s\\
+   & overshoot & $\approx$12\,\% & 11.4\,\% & 12.2\,\%\\
+   & ripple & 0.6 + delay effect $\approx$ 0.77 & 0.97 & 0.80\\
+   & duty (staircase) & 62\,\% (refit), 51\,\% (step test) & 60\,\% & 44.5\,\%\\
+\midrule
+Energy & ON-OFF / PI & 2.2 & -- & 2.04\\
+Detection & 50\,\% plate & 32.9 s & 39.5 s & 32.0 s\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{result}
+\textbf{Key conclusions to write:}
+\begin{enumerate}[leftmargin=*]
+\item The plant is first order plus dead time: $G(s) = \dfrac{K e^{-Ls}}{\tau s + 1}$, with restricted airflow dividing gain and time constant by $a$.
+\item SIMC gives $K_p = 2.21$, $T_i = 33.7$ s; the loop has $PM \approx 87^\circ$ and $GM \approx 28$, so it is very robust.
+\item The integrator guarantees zero steady-state error even though the real gain (1.41) differs from the design gain (1.71).
+\item Heater saturation explains the simulated PI rise time; lamp nonlinearity explains why the hardware was faster.
+\item The airflow residual is $(1 - a)\,y$; the filter and hold time predict detection in about 25--35 s, as measured.
+\end{enumerate}
+\end{result}
+
+\end{document}

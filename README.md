@@ -11,7 +11,7 @@ QNET HVAC Trainer (QNET-HVACT) on an NI ELVIS II+, written in MATLAB/Simulink.
 - **Validation**: every experiment is replayed in Simulink with the same inputs, and hardware and
   simulation are compared side by side
 
-Documentation: [report](docs/report/report.pdf) · [slides](docs/slides/slides.pdf)
+Documentation: [report](docs/report/report.pdf) · [slides](docs/slides/slides.pdf) · [how to use this folder](HOW_TO_USE.md)
 
 Somanshu Juneja (B24354), Ridhi Garg (B24348), Pramukto Mandal (B24347) ·
 EE302 Control Systems Laboratory, IIT Mandi · Group 2, Problem Statement 4
